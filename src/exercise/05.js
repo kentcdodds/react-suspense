@@ -45,21 +45,17 @@ function getPokemonResource(name) {
   const lowerName = name.toLowerCase()
   let resource = pokemonResourceCache[lowerName]
   if (!resource) {
-    resource = {
-      data: createPokemonResource(lowerName),
-      image: createImgSrcResource(getImageUrlForPokemon(lowerName)),
-    }
+    resource = createPokemonResource(lowerName)
     pokemonResourceCache[lowerName] = resource
   }
   return resource
 }
 
 function createPokemonResource(pokemonName) {
-  return createResource(fetchPokemon(pokemonName))
-}
+  const data = createResource(fetchPokemon(pokemonName))
+  const image = createResource(preloadImage(getImageUrlForPokemon(pokemonName)))
 
-function createImgSrcResource(src) {
-  return createResource(preloadImage(src))
+  return {data, image}
 }
 
 function App() {
