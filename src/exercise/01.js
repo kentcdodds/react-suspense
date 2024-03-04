@@ -4,36 +4,32 @@
 import * as React from 'react'
 import {PokemonDataView, fetchPokemon, PokemonErrorBoundary} from '../pokemon'
 
-function createResource(asyncCallback) {
-  let data = null
-  let error = null
+function createResource(promise) {
+  let status = 'pending'
 
-  const handleSuccess = d => (data = d)
-  const handleError = e => (error = e)
-
-  const promise = asyncCallback.then(handleSuccess, handleError)
+  let result = promise.then(
+    resolved => {
+      status = 'resolved'
+      result = resolved
+    },
+    rejected => {
+      status = 'rejected'
+      result = rejected
+    },
+  )
 
   return {
-    promise: () => promise,
-    read: () => data,
-    error: () => error,
+    read: () => {
+      if (status !== 'resolved') throw result
+      return result
+    },
   }
 }
 
 const resource = createResource(fetchPokemon('pikachu'))
 
 function PokemonInfo() {
-  const promise = resource.promise()
-  const error = resource.error()
   const pokemon = resource.read()
-
-  if (error) {
-    throw error
-  }
-
-  if (!pokemon) {
-    throw promise
-  }
 
   return (
     <div>
@@ -49,11 +45,11 @@ function App() {
   return (
     <div className="pokemon-info-app">
       <div className="pokemon-info">
-        <React.Suspense fallback={<>loading...</>}>
-          <PokemonErrorBoundary>
+        <PokemonErrorBoundary>
+          <React.Suspense fallback={<div>loading pokemon...</div>}>
             <PokemonInfo />
-          </PokemonErrorBoundary>
-        </React.Suspense>
+          </React.Suspense>
+        </PokemonErrorBoundary>
       </div>
     </div>
   )
