@@ -8,6 +8,7 @@ import {
   PokemonForm,
   PokemonDataView,
   PokemonErrorBoundary,
+  getImageUrlForPokemon,
 } from '../pokemon'
 import {createResource} from '../utils'
 
@@ -19,35 +20,13 @@ function preloadImage(src) {
   })
 }
 
-function createImgSrcResource(src) {
-  return createResource(preloadImage(src))
-}
-
-const imgSrcResourceCache = {}
-
-function getImgSrcResource(src) {
-  let imgSrcResource = imgSrcResourceCache[src]
-
-  if (!imgSrcResource) {
-    imgSrcResource = createImgSrcResource(src)
-    imgSrcResourceCache[src] = imgSrcResource
-  }
-
-  return imgSrcResource
-}
-
-function Img({src, alt, ...props}) {
-  const imgSrcResource = getImgSrcResource(src)
-
-  return <img src={imgSrcResource.read()} alt={alt} {...props} />
-}
-
 function PokemonInfo({pokemonResource}) {
-  const pokemon = pokemonResource.read()
+  const pokemon = pokemonResource.data.read()
+  const imgSrc = pokemonResource.image.read()
   return (
     <div>
       <div className="pokemon-info__img-wrapper">
-        <Img src={pokemon.image} alt={pokemon.name} />
+        <img src={imgSrc} alt={pokemon.name} />
       </div>
       <PokemonDataView pokemon={pokemon} />
     </div>
@@ -66,7 +45,10 @@ function getPokemonResource(name) {
   const lowerName = name.toLowerCase()
   let resource = pokemonResourceCache[lowerName]
   if (!resource) {
-    resource = createPokemonResource(lowerName)
+    resource = {
+      data: createPokemonResource(lowerName),
+      image: createImgSrcResource(getImageUrlForPokemon(lowerName)),
+    }
     pokemonResourceCache[lowerName] = resource
   }
   return resource
@@ -74,6 +56,10 @@ function getPokemonResource(name) {
 
 function createPokemonResource(pokemonName) {
   return createResource(fetchPokemon(pokemonName))
+}
+
+function createImgSrcResource(src) {
+  return createResource(preloadImage(src))
 }
 
 function App() {
