@@ -12,8 +12,6 @@ import {
 import {createResource} from '../utils'
 
 function PokemonInfo({pokemonResource}) {
-  // use context here
-
   const pokemon = pokemonResource.read()
   return (
     <div>
@@ -31,22 +29,39 @@ const SUSPENSE_CONFIG = {
   busyMinDurationMs: 700,
 }
 
-const pokemonResourceCache = {}
-
-function getPokemonResource(pokemonName) {
-  const lowerCasedName = pokemonName.toLowerCase()
-
-  if (!pokemonResourceCache[lowerCasedName]) {
-    pokemonResourceCache[lowerCasedName] = createPokemonResource(lowerCasedName)
-  }
-
-  return pokemonResourceCache[lowerCasedName]
-}
-
-const PokemonResourceCacheContext = React.createContext(getPokemonResource)
+const PokemonResourceCacheContext = React.createContext()
 
 function usePokemonResourceCache() {
-  return React.useContext(PokemonResourceCacheContext)
+  const context = React.useContext(PokemonResourceCacheContext)
+
+  if (!context) {
+    throw new Error(
+      `usePokemonResourceCache must be used within a PokemonCacheProvider`,
+    )
+  }
+
+  return context
+}
+
+function PokemonCacheProvider({children}) {
+  const pokemonResourceCache = React.useRef({})
+
+  const getPokemonResource = React.useCallback(pokemonName => {
+    const lowerCasedName = pokemonName.toLowerCase()
+
+    if (!pokemonResourceCache.current[lowerCasedName]) {
+      pokemonResourceCache.current[lowerCasedName] =
+        createPokemonResource(lowerCasedName)
+    }
+
+    return pokemonResourceCache.current[lowerCasedName]
+  }, [])
+
+  return (
+    <PokemonResourceCacheContext.Provider value={getPokemonResource}>
+      {children}
+    </PokemonResourceCacheContext.Provider>
+  )
 }
 
 function createPokemonResource(pokemonName) {
@@ -101,4 +116,12 @@ function App() {
   )
 }
 
-export default App
+function AppWithProvider() {
+  return (
+    <PokemonCacheProvider>
+      <App />
+    </PokemonCacheProvider>
+  )
+}
+
+export default AppWithProvider
