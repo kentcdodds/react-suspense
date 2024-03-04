@@ -21,7 +21,7 @@ const LeftNav = React.lazy(() =>
   import('../suspense-list/left-nav').then(delay(2000)),
 )
 const MainContent = React.lazy(() =>
-  import('../suspense-list/main-content').then(delay(1500)),
+  import('../suspense-list/main-content').then(delay(3500)),
 )
 const RightNav = React.lazy(() =>
   import('../suspense-list/right-nav').then(delay(1000)),
@@ -61,9 +61,6 @@ function App() {
     setPokemonResource(null)
   }
 
-  // 🐨 Use React.SuspenseList throughout these Suspending components to make
-  // them load in a way that is not jarring to the user.
-  // 💰 there's not really a specifically "right" answer for this.
   return (
     <div className="pokemon-info-app">
       <div className={cn.root}>
@@ -71,20 +68,28 @@ function App() {
           onReset={handleReset}
           resetKeys={[pokemonResource]}
         >
-          <React.Suspense fallback={fallback}>
-            <NavBar pokemonResource={pokemonResource} />
-          </React.Suspense>
-          <div className={cn.mainContentArea}>
+          <React.SuspenseList revealOrder="forwards" tail="collapsed">
             <React.Suspense fallback={fallback}>
-              <LeftNav />
+              <NavBar pokemonResource={pokemonResource} />
             </React.Suspense>
-            <React.Suspense fallback={fallback}>
-              <MainContent pokemonResource={pokemonResource} />
-            </React.Suspense>
-            <React.Suspense fallback={fallback}>
-              <RightNav pokemonResource={pokemonResource} />
-            </React.Suspense>
-          </div>
+
+            <div className={cn.mainContentArea}>
+              <React.SuspenseList revealOrder="forwards" tail="collapsed">
+                <React.Suspense fallback={fallback}>
+                  <LeftNav />
+                </React.Suspense>
+
+                <React.SuspenseList revealOrder="together">
+                  <React.Suspense fallback={fallback}>
+                    <MainContent pokemonResource={pokemonResource} />
+                  </React.Suspense>
+                  <React.Suspense fallback={fallback}>
+                    <RightNav pokemonResource={pokemonResource} />
+                  </React.Suspense>
+                </React.SuspenseList>
+              </React.SuspenseList>
+            </div>
+          </React.SuspenseList>
         </PokemonErrorBoundary>
       </div>
     </div>
