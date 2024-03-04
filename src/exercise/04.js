@@ -12,6 +12,8 @@ import {
 import {createResource} from '../utils'
 
 function PokemonInfo({pokemonResource}) {
+  // use context here
+
   const pokemon = pokemonResource.read()
   return (
     <div>
@@ -32,11 +34,19 @@ const SUSPENSE_CONFIG = {
 const pokemonResourceCache = {}
 
 function getPokemonResource(pokemonName) {
-  if (!pokemonResourceCache[pokemonName]) {
-    pokemonResourceCache[pokemonName] = createPokemonResource(pokemonName)
+  const lowerCasedName = pokemonName.toLowerCase()
+
+  if (!pokemonResourceCache[lowerCasedName]) {
+    pokemonResourceCache[lowerCasedName] = createPokemonResource(lowerCasedName)
   }
 
-  return pokemonResourceCache[pokemonName]
+  return pokemonResourceCache[lowerCasedName]
+}
+
+const PokemonResourceCacheContext = React.createContext(getPokemonResource)
+
+function usePokemonResourceCache() {
+  return React.useContext(PokemonResourceCacheContext)
 }
 
 function createPokemonResource(pokemonName) {
@@ -46,6 +56,7 @@ function createPokemonResource(pokemonName) {
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
   const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
+  const getPokemonResource = usePokemonResourceCache()
   const [pokemonResource, setPokemonResource] = React.useState(null)
 
   React.useEffect(() => {
@@ -56,7 +67,7 @@ function App() {
     startTransition(() => {
       setPokemonResource(getPokemonResource(pokemonName))
     })
-  }, [pokemonName, startTransition])
+  }, [getPokemonResource, pokemonName, startTransition])
 
   function handleSubmit(newPokemonName) {
     setPokemonName(newPokemonName)
