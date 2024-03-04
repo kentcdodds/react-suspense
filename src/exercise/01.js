@@ -26,10 +26,10 @@ function createResource(promise) {
   }
 }
 
-const resource = createResource(fetchPokemon('pikachu'))
+const pokemonResource = createResource(fetchPokemon('pikachu'))
 
 function PokemonInfo() {
-  const pokemon = resource.read()
+  const pokemon = pokemonResource.read()
 
   return (
     <div>
