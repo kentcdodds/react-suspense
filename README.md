@@ -1,5 +1,5 @@
 <div>
-  <h1 align="center"><a href="https://epicreact.dev/suspense">🔀 React Suspense 🚀 EpicReact.Dev</a></h1>
+  <h1 align="center"><a href="https://www.epicreact.dev/modules/react-suspense-v1/react-suspense-welcome">🔀 React Suspense 🚀 EpicReact.Dev</a></h1>
   <strong>
     Simplify your Async UI and improve your User Experience
   </strong>
